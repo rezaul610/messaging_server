@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
         const targetToken = data.token;
         const message = data.message;
         if (clients[targetToken]) {
-            clients[targetToken].emit("receiveMessage", { message });
+            clients[targetToken].emit("receiveMessage", data);
             console.log(`📨 Sent to ${targetToken}: ${message}`);
         } else {
             console.log(`⚠️ Target device not connected: ${targetToken}`);
@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on('getDiscoverUsers', () => {
-        io.emit('discoverUsers', onlineUsers);
+        socket.emit('discoverUsers', onlineUsers);
     });
 
     socket.on("disconnect", () => {
