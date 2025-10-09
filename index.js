@@ -53,7 +53,6 @@ io.on("connection", (socket) => {
 
     socket.on("sendNotification", (data) => {
         console.log("Send notification:", data);
-
         const targetToken = data.token;
         const message = data.message;
         if (clients[targetToken]) {
