@@ -20,35 +20,64 @@ async function main() {
     await redis.connect();
     await pubClient.connect();
     await subClient.connect();
-    console.log("Redis connected!");
 }
 
 main();
 
 io.adapter(createAdapter(pubClient, subClient));
+
 io.on("connection", async (socket) => {
     console.log("User connected:", socket.id);
+    console.log('✅ User Connected: ', socket.id);
 
     socket.on("join", async (user) => {
+        const useres = await redis.hVals("online_users");
+        let userlist = [];
+        for (const usr of useres) {
+            userlist.push(JSON.parse(usr));
+        }
+        const exists = userlist.find(userl => userl.userid === user.userid);
+        if (exists) {
+            await redis.hDel("online_users", exists.id);
+        }
         await redis.hSet("online_users", socket.id, JSON.stringify(user));
         const users = await redis.hVals("online_users");
-        io.emit("user_list", users.map((u) => JSON.parse(u)));
+        io.emit("discoverUsers", users.map((u) => JSON.parse(u)));
     });
 
     socket.on("discover", async () => {
         const users = await redis.hVals("online_users");
-        socket.emit("user_list", users.map((u) => JSON.parse(u)));
+        socket.emit("discoverUsers", users.map((u) => JSON.parse(u)));
     });
 
     socket.on("disconnect", async () => {
-        await redis.hDel("online_users", socket.id);
+        const useres = await redis.hVals("online_users");
+        let userlist = [];
+        for (const usr of useres) {
+            userlist.push(JSON.parse(usr));
+        }
+        const exists = userlist.find(userl => userl.id === socket.id);
+        if (exists) {
+            await redis.hDel("online_users", exists.id);
+        }
         const users = await redis.hVals("online_users");
-        io.emit("user_list", users.map((u) => JSON.parse(u)));
+        io.emit("discoverUsers", users.map((u) => JSON.parse(u)));
+        console.log('❌ User Disconnected: ', exists.id);
     });
 });
 
-app.get("/users", (req, res) => {
-    res.json(Array.from(connectedUsers.values()));
+app.get("/remove", async (req, res) => {
+    const users = await redis.hKeys("online_users");
+    if (users.length > 0) {
+        redis.hDel('online_users', users);
+        res.send({ message: 'User deleted successfully' });
+    }
+    res.send({ message: 'User not found' });
+});
+
+app.get("/users", async (req, res) => {
+    const users = await redis.hVals("online_users");
+    res.json(Array.from(users.map((u) => JSON.parse(u))));
 });
 
 server.listen(3000, () => console.log("✅ Connection Server on 3000"));
