@@ -15,10 +15,10 @@ const ONLINE_USERS_KEY = "online_users";
 io.on("connection", (socket) => {
     console.log("Text Server connected:", socket.id);
 
-    socket.on("send_text", async ({ toUserId, message }) => {
+    socket.on("sendMessage", async ({ toUserId, message }) => {
         const socketId = await pubClient.hget(ONLINE_USERS_KEY, toUserId);
         if (socketId) {
-            io.to(socketId).emit("receive_text", { message });
+            io.to(socketId).emit("receiveMessage", { message });
         }
     });
 });

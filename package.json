@@ -9,7 +9,7 @@
     "client": "npm run start --prefix client",
     "server": "nodemon index.js",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
-    "start:all": "concurrently \"nodemon server.js\" \"nodemon text-server.js\" \"nodemon media-server.js\""
+    "start:all": "concurrently \"nodemon connect.server.js\" \"nodemon message.server.js\" \"nodemon media.server.js\""
   },
   "keywords": [],
   "author": "",
