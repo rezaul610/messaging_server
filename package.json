@@ -8,17 +8,20 @@
     "start": "node index.js",
     "client": "npm run start --prefix client",
     "server": "nodemon index.js",
-    "dev": "concurrently \"npm run client\" \"npm run server\""
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "start:all": "concurrently \"nodemon server.js\" \"nodemon text-server.js\" \"nodemon media-server.js\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
+    "redis": "^5.9.0",
     "socket.io": "^4.8.1",
     "ws": "^8.18.3"
   }
