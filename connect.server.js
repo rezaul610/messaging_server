@@ -47,7 +47,8 @@ io.on("connection", async (socket) => {
 
     socket.on("discover", async () => {
         const users = await redis.hVals("online_users");
-        socket.emit("discoverUsers", users.map((u) => JSON.parse(u)));
+        const parsedusers = users.map((u) => JSON.parse(u));
+        socket.emit("discoverUsers", parsedusers);
     });
 
     socket.on("disconnect", async () => {
