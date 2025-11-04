@@ -27,8 +27,8 @@ main();
 io.adapter(createAdapter(pubClient, subClient));
 
 io.on("connection", async (socket) => {
-    console.log("User connected:", socket.id);
-    console.log('✅ User Connected: ', socket.id);
+    const userId = socket.handshake.query.userid;
+    console.log('✅ User Connected: ', socket.id, userId);
 
     socket.on("join", async (user) => {
         const useres = await redis.hVals("online_users");

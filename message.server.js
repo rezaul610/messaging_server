@@ -13,10 +13,12 @@ io.adapter(createAdapter(pubClient, subClient));
 const ONLINE_USERS_KEY = "online_users";
 
 io.on("connection", (socket) => {
-    console.log("Text Server connected:", socket.id);
+    const userId = socket.handshake.query.userid;
+    console.log('✅ Text Server Connected: ', socket.id, userId);
 
-    socket.on("sendMessage", async ({ toUserId, message }) => {
-        const socketId = await pubClient.hget(ONLINE_USERS_KEY, toUserId);
+    socket.on("sendMessage", async (data) => {
+        console.log(data);
+        const socketId = await pubClient.hget(ONLINE_USERS_KEY, data.id);
         if (socketId) {
             io.to(socketId).emit("receiveMessage", { message });
         }
