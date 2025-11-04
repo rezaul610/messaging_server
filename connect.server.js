@@ -65,6 +65,14 @@ io.on("connection", async (socket) => {
         io.emit("discoverUsers", users.map((u) => JSON.parse(u)));
         console.log('❌ User Disconnected: ', exists.id);
     });
+
+    socket.on("sendMessage", async (data) => {
+        console.log(data);
+        const socketId = await pubClient.hGet("online_users", data.id);
+        if (socketId) {
+            io.to(socketId).emit("receiveMessage", { message });
+        }
+    });
 });
 
 app.get("/remove", async (req, res) => {

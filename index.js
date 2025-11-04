@@ -63,7 +63,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on('getDiscoverUsers', () => {
+    socket.on('discover', () => {
         socket.emit('discoverUsers', onlineUsers);
     });
 
