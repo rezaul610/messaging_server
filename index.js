@@ -1,13 +1,31 @@
 const express = require("express");
 const http = require("http");
+const { send } = require("process");
+require('dotenv').config();
+
 
 const app = express();
 const server = http.createServer(app);
+const sequelize = require('./config/database');
 
 const PORT = 3000;
 
 let clients = [];
 let onlineUsers = [];
+
+const start = async () => {
+    try {
+        await sequelize.authenticate()
+            .then(() => console.log('✅ PostgreSQL connected!'))
+            .catch(err => console.error('❌ Connection error:', err));
+        await sequelize.sync({ alter: true }); // sync models to DB
+        app.listen(process.env.API_PORT, () => console.log(`🚀 Server running at http://localhost:${process.env.API_PORT}`));
+    } catch (err) {
+        console.error('❌ Unable to start server:', err);
+    }
+};
+
+start();
 
 const io = require("socket.io")(server, { cors: { origin: "*" } });
 
@@ -23,6 +41,7 @@ io.on("connection", (socket) => {
         console.log(`User joined: ${JSON.stringify(user)}`);
         onlineUsers.push({ ...user, socketId: socket.id });
         io.emit('discoverUsers', onlineUsers);
+
     });
 
     socket.on('joinGroups', (groupIds) => {
@@ -31,7 +50,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("sendMessage", (data) => {
-        console.log("Send message:", data);
+        console.log("Send message:", data.userid);
         const targetToken = data.token;
         const message = data.message;
         if (clients[targetToken]) {
@@ -44,7 +63,6 @@ io.on("connection", (socket) => {
 
     socket.on('sendImage', ({ senderId, receiverId, image }) => {
         console.log('Image received from:', socket.id);
-        // socket.broadcast.emit('receiveImage', data);
         io.to(receiverId).emit('receiveImage', {
             senderId,
             image,
@@ -53,14 +71,8 @@ io.on("connection", (socket) => {
 
     socket.on("sendNotification", (data) => {
         console.log("Send notification:", data);
-        const targetToken = data.token;
-        const message = data.message;
-        if (clients[targetToken]) {
-            clients[targetToken].emit("receiveNotification", { message });
-            console.log(`📨 Sent to ${targetToken}: ${message}`);
-        } else {
-            console.log(`⚠️ Target device not connected: ${targetToken}`);
-        }
+        const receiverId = data.token;
+        io.to(receiverId).emit('receiveNotification', data);
     });
 
     socket.on('discover', () => {
@@ -76,6 +88,10 @@ io.on("connection", (socket) => {
         }
         io.emit('discoverUsers', onlineUsers);
     });
+});
+
+app.get("/users", async (req, res) => {
+    res.json(Array.from(onlineUsers));
 });
 
 server.listen(PORT, () => console.log(`Server running on ${PORT}`));
