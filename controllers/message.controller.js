@@ -12,7 +12,7 @@ const deleteMessage = async (id) => {
     return await messageService.deleteMessage(id);
 };
 
-const sentBroadcastMessage = async (io, onlines) => {
+const sendBroadcastMessage = async (io, onlines) => {
     const messages = await messageService.getAllMessages();
     if (messages.length > 0 && onlines.length > 0) {
         for (const msg of messages) {
@@ -26,6 +26,7 @@ const sentBroadcastMessage = async (io, onlines) => {
                         type: msg.messageType,
                         dateTime: msg.dateTime,
                     });
+                    io.to(user.socketId).emit('receiveNotification', { 'token': user.socketId, 'bp_no': msg.bpNo, 'message': msg.message });
                     await messageService.deleteMessage(msg.id);
                 }
             }
@@ -37,6 +38,6 @@ const sentBroadcastMessage = async (io, onlines) => {
 module.exports = {
     saveMessage,
     getAllMessages,
-    sentBroadcastMessage,
+    sendBroadcastMessage,
     deleteMessage,
 };

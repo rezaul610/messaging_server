@@ -8,12 +8,14 @@ const app = express();
 const server = http.createServer(app);
 const sequelize = require('./config/database');
 
+const messageController = require("./controllers/message.controller");
+
 const PORT = 3000;
 
 let clients = [];
 let onlineUsers = [];
 
-const start = async () => {
+/* const start = async () => {
     try {
         await sequelize.authenticate()
             .then(() => console.log('✅ PostgreSQL connected!'))
@@ -25,7 +27,7 @@ const start = async () => {
     }
 };
 
-start();
+start();*/
 
 const io = require("socket.io")(server, { cors: { origin: "*" } });
 
@@ -41,7 +43,7 @@ io.on("connection", (socket) => {
         console.log(`User joined: ${JSON.stringify(user)}`);
         onlineUsers.push({ ...user, socketId: socket.id });
         io.emit('discoverUsers', onlineUsers);
-
+        messageController.sendBroadcastMessage(io, onlineUsers);
     });
 
     socket.on('joinGroups', (groupIds) => {
@@ -50,14 +52,23 @@ io.on("connection", (socket) => {
     });
 
     socket.on("sendMessage", (data) => {
-        console.log("Send message:", data.userid);
         const targetToken = data.token;
         const message = data.message;
-        if (clients[targetToken]) {
-            clients[targetToken].emit("receiveMessage", data);
-            console.log(`📨 Sent to ${targetToken}: ${message}`);
+        if (data.token === 'N/A') {
+            messageController.saveMessage({
+                bpNo: data.bp_no,
+                msg: data.message,
+                msgType: data.type,
+                dateTime: data.date_time,
+                sentStatus: 0,
+            });
         } else {
-            console.log(`⚠️ Target device not connected: ${targetToken}`);
+            if (clients[targetToken]) {
+                clients[targetToken].emit("receiveMessage", data);
+                console.log(`📨 Sent to ${targetToken}: ${message}`);
+            } else {
+                console.log(`⚠️ Target device not connected: ${targetToken}`);
+            }
         }
     });
 
