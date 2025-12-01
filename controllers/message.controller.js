@@ -20,7 +20,7 @@ const sendBroadcastMessage = async (io, onlines) => {
                 if (user.userid === msg.bpNo) {
                     io.to(user.socketId).emit("receiveMessage", {
                         message: msg.message,
-                        token: user.socketId,
+                        token: user.socketid,
                         bpNo: msg.bpNo,
                         isMe: false,
                         type: msg.messageType,
@@ -30,7 +30,6 @@ const sendBroadcastMessage = async (io, onlines) => {
                     await messageService.deleteMessage(msg.id);
                 }
             }
-
         }
     }
 }

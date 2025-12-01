@@ -32,7 +32,7 @@ start();*/
 const io = require("socket.io")(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
-    const token = socket.id;
+    const token = socket.handshake.query.socketid;
     if (token) {
         clients[token] = socket;
         console.log(`✅ Device connected: ${token}`);
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
 
     socket.on('join', (user) => {
         console.log(`User joined: ${JSON.stringify(user)}`);
-        onlineUsers.push({ ...user, socketId: socket.id });
+        onlineUsers.push({ ...user, socketId: socket.socketid });
         io.emit('discoverUsers', onlineUsers);
         messageController.sendBroadcastMessage(io, onlineUsers);
     });
@@ -94,7 +94,7 @@ io.on("connection", (socket) => {
         console.log(`❌ Device disconnected: ${token}`);
         delete clients[token];
         if (onlineUsers.length > 0) {
-            const index = onlineUsers.findIndex(u => u.id === token);
+            const index = onlineUsers.findIndex(u => u.socketid === token);
             onlineUsers.splice(index, 1);
         }
         io.emit('discoverUsers', onlineUsers);

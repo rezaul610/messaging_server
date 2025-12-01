@@ -16,7 +16,7 @@ const Message = sequelize.define("Message", {
 (async () => {
     try {
         await sequelize.authenticate()
-            .then(() => console.log('✅ PostgreSQL connected!'))
+            .then(() => console.log('✅ MySQL connected!'))
             .catch(err => console.error('❌ Connection error:', err));
         await sequelize.sync({ alter: true }); // sync models to DB
     } catch (error) {
