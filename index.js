@@ -7,8 +7,11 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 const sequelize = require('./config/database');
-
 const messageController = require("./controllers/message.controller");
+const groupC = require('./controllers/group.controller');
+const userC = require('./controllers/user.controller');
+const authController = require('./controllers/auth.controller');
+const { connect } = require("http2");
 
 const PORT = 3000;
 
@@ -41,7 +44,14 @@ io.on("connection", (socket) => {
 
     socket.on('join', (user) => {
         console.log(`User joined: ${JSON.stringify(user)}`);
-        onlineUsers.push({ ...user, socketId: socket.socketid });
+        const query = socket.handshake.query;
+        onlineUsers.push({ ...user, socketId: query.socketid });
+        const exist = authController.getAuthUserInfoBySocketId(query.socketid);
+        if (exist) {
+            authController.updateAuthByUserId({ socketid: query.socketid, userid: query.userid, connect: 1 });
+        } else {
+            authController.saveAuth({ socketid: query.socketid, userid: query.userid });
+        }
         io.emit('discoverUsers', onlineUsers);
         messageController.sendBroadcastMessage(io, onlineUsers);
     });
@@ -80,6 +90,28 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on('sendGroupInfo', ({ groupInfo, userIds }) => {
+
+        const group = groupC.getGroupByName(groupInfo.name);
+        if (group) {
+            groupC.updateGroupByName(groupInfo);
+        } else {
+            groupC.saveGroup(groupInfo);
+        }
+
+        for (const ids of userIds) {
+            const exist = onlineUsers.find(user => user.userid == ids.id);
+            if (exist) {
+                io.to(exist.socketid).emit('groupInfo', {
+                    groupInfo,
+                    userIds,
+                });
+            }
+            userC.saveUser({ groupid: ids.groupId, bpno: ids.id, name: ids.name, phone: ids.phone })
+        }
+
+    });
+
     socket.on("sendNotification", (data) => {
         console.log("Send notification:", data);
         const receiverId = data.token;
@@ -95,7 +127,9 @@ io.on("connection", (socket) => {
         delete clients[token];
         if (onlineUsers.length > 0) {
             const index = onlineUsers.findIndex(u => u.socketid === token);
+            const userinfo = onlineUsers[index];
             onlineUsers.splice(index, 1);
+            authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
         }
         io.emit('discoverUsers', onlineUsers);
     });

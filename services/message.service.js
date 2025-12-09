@@ -1,7 +1,6 @@
 const Message = require("../models/message.model");
 
 const saveMessage = async (data) => {
-    // const { bpNo, message, messageType, dateTime, sentStatus } = data;
     try {
         const newMessage = await Message.create({
             bpNo: data.bpNo,
