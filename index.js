@@ -97,8 +97,8 @@ io.on("connection", (socket) => {
             groupC.updateGroupByName(groupInfo);
         } else {
             groupC.saveGroup(groupInfo);
+            group = groupC.getGroupByName(groupInfo.name);
         }
-
         for (const ids of userIds) {
             const exist = onlineUsers.find(user => user.userid == ids.id);
             if (exist) {
@@ -107,7 +107,7 @@ io.on("connection", (socket) => {
                     userIds,
                 });
             }
-            userC.saveUser({ groupid: ids.groupId, bpno: ids.id, name: ids.name, phone: ids.phone })
+            userC.saveUser(ids);
         }
 
     });

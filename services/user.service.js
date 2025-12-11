@@ -1,12 +1,13 @@
 const User = require('../models/user.model');
 
 const saveUser = async (data) => {
-    const { groupid, name, bpNo, phone } = data;
+    const { id, groupid, name, bpNo, phone } = data;
     try {
         const user = await User.create({
-            name: name,
+            id: id,
             groupid: groupid,
-            bpNo: bpNo,
+            name: name,
+            bpno: data.bpno,
             phone: phone,
         });
         console.log(`User saved: ${JSON.stringify(user)}`);
@@ -20,10 +21,10 @@ const saveUser = async (data) => {
 const updateUserById = async (data) => {
     const { id, groupid, name, bpNo, phone } = data;
     try {
-        const user = await User.create({
-            name: name,
+        const user = await User.update({
             groupid: groupid,
-            bpNo: bpNo,
+            name: name,
+            bpno: data.bpno,
             phone: phone,
         }, {
             id: id
