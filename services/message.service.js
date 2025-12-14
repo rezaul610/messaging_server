@@ -1,13 +1,15 @@
 const Message = require("../models/message.model");
 
-const saveMessage = async (data) => {
+const saveMessage = async (data, bpno) => {
     try {
         const newMessage = await Message.create({
-            bpNo: data.bpNo,
-            message: data.msg,
-            messageType: data.msgType,
-            dateTime: data.dateTime,
-            sentStatus: data.sentStatus,
+            bpno: data.bp_no,
+            receiverbpno: bpno,
+            message: data.message,
+            groupid: data.group_id,
+            messagetype: data.type,
+            datetime: data.date_time,
+            sentstatus: 0,
         });
         console.log(`Message saved: ${JSON.stringify(newMessage)}`);
         return newMessage;
@@ -27,9 +29,19 @@ const getAllMessages = async () => {
     }
 };
 
-const getMessageByBpNo = async (bpNo) => {
+const getMessageByBpNo = async (bpno) => {
     try {
-        const message = await Message.findOne({ where: { bpNo } });
+        const message = await Message.findAll({ where: { bpno: bpno } });
+        return message;
+    } catch (error) {
+        console.error("Error retrieving message by ID:", error);
+        throw error;
+    }
+};
+
+const getMessageByGroupData = async (gdata) => {
+    try {
+        const message = await Message.findAll({ where: { groupid: gdata.group_id, bpno: gdata.bp_no, message: gdata.message } });
         return message;
     } catch (error) {
         console.error("Error retrieving message by ID:", error);
@@ -51,5 +63,6 @@ module.exports = {
     saveMessage,
     getAllMessages,
     getMessageByBpNo,
+    getMessageByGroupData,
     deleteMessage,
 };

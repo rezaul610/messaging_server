@@ -61,17 +61,28 @@ io.on("connection", (socket) => {
         console.log(`User joined groups: ${groupIds}`);
     });
 
-    socket.on("sendMessage", (data) => {
+    socket.on("sendMessage", async (data) => {
         const targetToken = data.token;
         const message = data.message;
-        if (data.token === 'N/A') {
-            messageController.saveMessage({
-                bpNo: data.bp_no,
-                msg: data.message,
-                msgType: data.type,
-                dateTime: data.date_time,
-                sentStatus: 0,
-            });
+        if (data.gid != '') {
+            const group = await groupC.getGroupBygId(data.group_id);
+            const gUsers = await userC.getUserById(group.id);
+            for (const user of gUsers ?? []) {
+                const online = onlineUsers.find(u => u.userid === user.receiverbpno);
+                if (online) {
+                    const me = online.userid === user.bpno;
+                    if (!me) {
+                        clients[online.socketid].emit("receiveMessage", data);
+                    }
+                } else {
+                    const gmessage = await messageController.getMessageByGroupData(data);
+                    if (gmessage.length === 0) {
+                        messageController.saveMessage(data, user.dataValues.bpno);
+                    }
+                }
+            }
+        } else if (data.token === 'N/A') {
+            messageController.saveMessage(data, data.receiverbpno);
         } else {
             if (clients[targetToken]) {
                 clients[targetToken].emit("receiveMessage", data);
@@ -90,24 +101,23 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on('sendGroupInfo', ({ groupInfo, userIds }) => {
-
-        const group = groupC.getGroupByName(groupInfo.name);
+    socket.on('sendGroupInfo', async ({ groupInfo, userIds }) => {
+        let group = await groupC.getGroupByName(groupInfo.name);
         if (group) {
-            groupC.updateGroupByName(groupInfo);
+            await groupC.updateGroupByName(groupInfo);
         } else {
-            groupC.saveGroup(groupInfo);
-            group = groupC.getGroupByName(groupInfo.name);
+            await groupC.saveGroup(groupInfo);
+            group = await groupC.getGroupByName(groupInfo.name);
         }
         for (const ids of userIds) {
-            const exist = onlineUsers.find(user => user.userid == ids.id);
+            let exist = onlineUsers.find(user => user.userid == ids.id);
             if (exist) {
                 io.to(exist.socketid).emit('groupInfo', {
                     groupInfo,
                     userIds,
                 });
             }
-            userC.saveUser(ids);
+            await userC.saveUser(ids);
         }
 
     });

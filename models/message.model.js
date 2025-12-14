@@ -3,11 +3,13 @@ const sequelize = require("../config/database");
 
 const Message = sequelize.define("Message", {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    bpNo: { type: DataTypes.STRING, allowNull: false },
+    bpno: { type: DataTypes.STRING, allowNull: false },
+    receiverbpno: { type: DataTypes.STRING, allowNull: false },
     message: { type: DataTypes.STRING, allowNull: false },
-    messageType: { type: DataTypes.STRING, allowNull: false },
-    dateTime: { type: DataTypes.STRING, allowNull: false },
-    sentStatus: { type: DataTypes.INTEGER, allowNull: false },
+    groupid: { type: DataTypes.STRING, allowNull: false },
+    messagetype: { type: DataTypes.STRING, allowNull: false },
+    datetime: { type: DataTypes.STRING, allowNull: false },
+    sentstatus: { type: DataTypes.INTEGER, allowNull: false },
 }, {
     tableName: "messages",
     timestamps: false,

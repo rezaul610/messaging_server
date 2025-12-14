@@ -1,17 +1,22 @@
 const User = require('../models/user.model');
 
 const saveUser = async (data) => {
-    const { id, groupid, name, bpNo, phone } = data;
+    const { id, groupid, name, bpno, phone } = data;
     try {
-        const user = await User.create({
-            id: id,
-            groupid: groupid,
-            name: name,
-            bpno: data.bpno,
-            phone: phone,
-        });
-        console.log(`User saved: ${JSON.stringify(user)}`);
-        return user;
+        const exist = User.findAll({ where: { groupid: groupid, bpno: bpno } });
+        if (!exist) {
+            const user = await User.create({
+                id: id,
+                groupid: groupid,
+                name: name,
+                bpno: bpno,
+                phone: phone,
+            });
+            console.log(`User saved: ${JSON.stringify(user)}`);
+            return user;
+        } else {
+            return exist;
+        }
     } catch (error) {
         console.error("Error saving user:", error);
         throw error;
@@ -39,7 +44,7 @@ const updateUserById = async (data) => {
 
 const getUserById = async (id) => {
     try {
-        const user = await User.findOne({ where: { id } });
+        const user = await User.findAll({ where: { id } });
         return user;
     } catch (error) {
         console.error("Error retrieving user:", error);
@@ -49,7 +54,7 @@ const getUserById = async (id) => {
 
 const getUserListByGroupId = async (groupid) => {
     try {
-        const users = await User.findOne({ where: { groupid } });
+        const users = await User.findAll({ where: { groupid } });
         return users;
     } catch (error) {
         console.error("Error retrieving user:", error);

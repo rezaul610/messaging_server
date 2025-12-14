@@ -12,6 +12,10 @@ const getGroupById = async (id) => {
     return await groupService.getGroupById(id);
 };
 
+const getGroupBygId = async (gid) => {
+    return await groupService.getGroupBygId(gid);
+};
+
 const updateGroupByName = async (data) => {
     return await groupService.updateGroupByName(data);
 };
@@ -29,6 +33,7 @@ module.exports = {
     updateGroupById,
     updateGroupByName,
     getGroupById,
+    getGroupBygId,
     getGroupByName,
     deteteGroup,
 }

@@ -1,10 +1,11 @@
 const Group = require('../models/group.model');
 
 const saveGroup = async (data) => {
-    const { id, name } = data;
+    const { id, g_id, name } = data;
     try {
         const group = await Group.create({
             id: id,
+            gid: g_id,
             name: name,
         });
         console.log(`Group saved: ${JSON.stringify(group)}`);
@@ -42,14 +43,25 @@ const getGroupById = async (id) => {
     }
 };
 
+const getGroupBygId = async (gid) => {
+    try {
+        const group = await Group.findOne({ where: { gid: gid } });
+        return group;
+    } catch (error) {
+        console.error("Error retrieving group:", error);
+        throw error;
+    }
+};
+
 const updateGroupByName = async (data) => {
-    const { id, name } = data;
+    const { id, gid, name } = data;
     try {
         const group = await Group.update({
             id: id,
+            gid: gid,
             name: name,
         }, {
-            where: { name: name },
+            where: { name: name, gid: gid },
         });
         console.log(`Group updated: ${JSON.stringify(group)}`);
         return group;
@@ -84,6 +96,7 @@ module.exports = {
     updateGroupById,
     updateGroupByName,
     getGroupById,
+    getGroupBygId,
     getGroupByName,
     deleteGroup,
 };

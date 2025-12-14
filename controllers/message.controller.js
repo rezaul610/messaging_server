@@ -1,11 +1,15 @@
 const messageService = require("../services/message.service");
 
-const saveMessage = async (data) => {
-    return await messageService.saveMessage(data);
+const saveMessage = async (data, bpno) => {
+    return await messageService.saveMessage(data, bpno);
 };
 
 const getAllMessages = async () => {
     return await messageService.getAllMessages();
+};
+
+const getMessageByGroupData = async (data) => {
+    return await messageService.getMessageByGroupData(data);
 };
 
 const deleteMessage = async (id) => {
@@ -37,6 +41,7 @@ const sendBroadcastMessage = async (io, onlines) => {
 module.exports = {
     saveMessage,
     getAllMessages,
+    getMessageByGroupData,
     sendBroadcastMessage,
     deleteMessage,
 };
