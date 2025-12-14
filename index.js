@@ -73,6 +73,7 @@ io.on("connection", (socket) => {
                     const me = online.userid === user.bpno;
                     if (!me) {
                         clients[online.socketid].emit("receiveMessage", data);
+                        io.to(online.socketid).emit('receiveNotification', data);
                     }
                 } else {
                     const gmessage = await messageController.getMessageByGroupData(data);
@@ -86,6 +87,7 @@ io.on("connection", (socket) => {
         } else {
             if (clients[targetToken]) {
                 clients[targetToken].emit("receiveMessage", data);
+                io.to(targetToken).emit('receiveNotification', data);
                 console.log(`📨 Sent to ${targetToken}: ${message}`);
             } else {
                 console.log(`⚠️ Target device not connected: ${targetToken}`);
@@ -99,6 +101,7 @@ io.on("connection", (socket) => {
             senderId,
             image,
         });
+        io.to(receiverId).emit('receiveNotification', image);
     });
 
     socket.on('sendGroupInfo', async ({ groupInfo, userIds }) => {
@@ -116,10 +119,10 @@ io.on("connection", (socket) => {
                     groupInfo,
                     userIds,
                 });
+                io.to(exist.socketid).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
             }
             await userC.saveUser(ids);
         }
-
     });
 
     socket.on("sendNotification", (data) => {

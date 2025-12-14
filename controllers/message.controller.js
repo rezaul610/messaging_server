@@ -21,11 +21,13 @@ const sendBroadcastMessage = async (io, onlines) => {
     if (messages.length > 0 && onlines.length > 0) {
         for (const msg of messages) {
             for (const user of onlines) {
-                if (user.userid === msg.bpNo) {
+                if (user.userid === msg.receiverbpno) {
                     io.to(user.socketId).emit("receiveMessage", {
                         message: msg.message,
                         token: user.socketid,
                         bpNo: msg.bpNo,
+                        receiverbpno: msg.receiverbpno,
+                        groupid: msg.groupid,
                         isMe: false,
                         type: msg.messageType,
                         dateTime: msg.dateTime,
