@@ -1,41 +1,23 @@
 const express = require("express");
 const http = require("http");
-const { send } = require("process");
 require('dotenv').config();
-
 
 const app = express();
 const server = http.createServer(app);
-const sequelize = require('./config/database');
+const authController = require('./controllers/auth.controller');
 const messageController = require("./controllers/message.controller");
 const groupC = require('./controllers/group.controller');
 const userC = require('./controllers/user.controller');
-const authController = require('./controllers/auth.controller');
-const { connect } = require("http2");
 
 const PORT = 3000;
 
 let clients = [];
 let onlineUsers = [];
 
-/* const start = async () => {
-    try {
-        await sequelize.authenticate()
-            .then(() => console.log('✅ PostgreSQL connected!'))
-            .catch(err => console.error('❌ Connection error:', err));
-        await sequelize.sync({ alter: true }); // sync models to DB
-        app.listen(process.env.API_PORT, () => console.log(`🚀 Server running at http://localhost:${process.env.API_PORT}`));
-    } catch (err) {
-        console.error('❌ Unable to start server:', err);
-    }
-};
-
-start();*/
-
 const io = require("socket.io")(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
-    const token = socket.handshake.query.socketid;
+    const token = socket.id;
     if (token) {
         clients[token] = socket;
         console.log(`✅ Device connected: ${token}`);
@@ -43,9 +25,8 @@ io.on("connection", (socket) => {
     console.log(`Connected clients: ${Object.keys(clients).length}`);
 
     socket.on('join', (user) => {
-        console.log(`User joined: ${JSON.stringify(user)}`);
         const query = socket.handshake.query;
-        onlineUsers.push({ ...user, socketId: query.socketid });
+        onlineUsers.push({ ...user, socketId: socket.id });
         const exist = authController.getAuthUserInfoBySocketId(query.socketid);
         if (exist) {
             authController.updateAuthByUserId({ socketid: query.socketid, userid: query.userid, connect: 1 });
@@ -54,15 +35,10 @@ io.on("connection", (socket) => {
         }
         io.emit('discoverUsers', onlineUsers);
         messageController.sendBroadcastMessage(io, onlineUsers);
-    });
-
-    socket.on('joinGroups', (groupIds) => {
-        groupIds.forEach(id => socket.join(id));
-        console.log(`User joined groups: ${groupIds}`);
+        console.log({ ...user, socketId: socket.id });
     });
 
     socket.on("sendMessage", async (data) => {
-        const targetToken = data.token;
         const message = data.message;
         if (data.gid != '') {
             const group = await groupC.getGroupBygId(data.group_id);
@@ -72,8 +48,8 @@ io.on("connection", (socket) => {
                 if (online) {
                     const me = online.userid === user.bpno;
                     if (!me) {
-                        clients[online.socketid].emit("receiveMessage", data);
-                        io.to(online.socketid).emit('receiveNotification', data);
+                        clients[online.socketId].emit("receiveMessage", data);
+                        io.to(online.socketId).emit('receiveNotification', data);
                     }
                 } else {
                     const gmessage = await messageController.getMessageByGroupData(data);
@@ -85,12 +61,13 @@ io.on("connection", (socket) => {
         } else if (data.token === 'N/A') {
             messageController.saveMessage(data, data.receiverbpno);
         } else {
-            if (clients[targetToken]) {
-                clients[targetToken].emit("receiveMessage", data);
-                io.to(targetToken).emit('receiveNotification', data);
-                console.log(`📨 Sent to ${targetToken}: ${message}`);
+            const online = onlineUsers.find(u => u.socketid === token);
+            if (clients[online.socketId]) {
+                clients[online.socketId].emit("receiveMessage", data);
+                io.to(online.socketId).emit('receiveNotification', data);
+                console.log(`📨 Sent to ${online.socketId}: ${message}`);
             } else {
-                console.log(`⚠️ Target device not connected: ${targetToken}`);
+                console.log(`⚠️ Target device not connected: ${online.socketId}`);
             }
         }
     });
@@ -115,11 +92,11 @@ io.on("connection", (socket) => {
         for (const ids of userIds) {
             let exist = onlineUsers.find(user => user.userid == ids.id);
             if (exist) {
-                io.to(exist.socketid).emit('groupInfo', {
+                io.to(exist.socketId).emit('groupInfo', {
                     groupInfo,
                     userIds,
                 });
-                io.to(exist.socketid).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
+                io.to(exist.socketId).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
             }
             await userC.saveUser(ids);
         }
@@ -139,7 +116,7 @@ io.on("connection", (socket) => {
         console.log(`❌ Device disconnected: ${token}`);
         delete clients[token];
         if (onlineUsers.length > 0) {
-            const index = onlineUsers.findIndex(u => u.socketid === token);
+            const index = onlineUsers.findIndex(u => u.socketId === token);
             const userinfo = onlineUsers[index];
             onlineUsers.splice(index, 1);
             authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
