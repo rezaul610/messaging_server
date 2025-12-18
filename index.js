@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", async (data) => {
         const message = data.message;
-        if (data.gid != '') {
+        if (data.gid != '' && data.gid != null) {
             const group = await groupC.getGroupBygId(data.group_id);
             const gUsers = await userC.getUserById(group.id);
             for (const user of gUsers ?? []) {
