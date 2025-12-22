@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
         } else if (data.token === 'N/A') {
             messageController.saveMessage(data, data.receiverbpno);
         } else {
-            const online = onlineUsers.find(u => u.socketid === token);
+            const online = onlineUsers.find(u => u.socketid === data.token);
             if (clients[online.socketId]) {
                 clients[online.socketId].emit("receiveMessage", data);
                 io.to(online.socketId).emit('receiveNotification', data);
@@ -113,14 +113,14 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log(`❌ Device disconnected: ${token}`);
-        delete clients[token];
         if (onlineUsers.length > 0) {
             const index = onlineUsers.findIndex(u => u.socketId === token);
             const userinfo = onlineUsers[index];
             onlineUsers.splice(index, 1);
             authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
         }
+        console.log(`❌ Device disconnected: ${token}`);
+        delete clients[token];
         io.emit('discoverUsers', onlineUsers);
     });
 });
