@@ -7,6 +7,7 @@ const User = sequelize.define("User", {
     bpno: { type: DataTypes.STRING, allowNull: false },
     name: { type: DataTypes.STRING, allowNull: false },
     phone: { type: DataTypes.STRING, allowNull: false },
+    sentStatus: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 }, {
     tableName: "users",
     timestamps: false,

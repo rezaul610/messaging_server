@@ -8,6 +8,10 @@ const updateUserById = async (data) => {
     return await userService.updateUserById(data);
 };
 
+const updateUserStatusById = async (data) => {
+    return await userService.updateUserStatusById(data);
+}
+
 const getUserById = async (id) => {
     return await userService.getUserById(id);
 };
@@ -25,5 +29,6 @@ module.exports = {
     updateUserById,
     getUserById,
     getUserListByGroupId,
+    updateUserStatusById,
     deleteUser,
 }

@@ -34,6 +34,7 @@ io.on("connection", (socket) => {
             authController.saveAuth({ socketid: query.socketid, userid: query.userid });
         }
         io.emit('discoverUsers', onlineUsers);
+        groupC.broadcastGroupInfo(io, onlineUsers);
         messageController.sendBroadcastMessage(io, onlineUsers);
         console.log({ ...user, socketId: socket.id });
     });
@@ -90,15 +91,17 @@ io.on("connection", (socket) => {
             group = await groupC.getGroupByName(groupInfo.name);
         }
         for (const ids of userIds) {
+            console.log('Adding user to group:', ids);
+            await userC.saveUser(ids);
             let exist = onlineUsers.find(user => user.userid == ids.id);
             if (exist) {
                 io.to(exist.socketId).emit('groupInfo', {
                     groupInfo,
                     userIds,
                 });
+                await userC.updateUserStatusById({ id: ids.id, sentStatus: 1 });
                 io.to(exist.socketId).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
             }
-            await userC.saveUser(ids);
         }
     });
 

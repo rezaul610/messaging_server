@@ -11,6 +11,7 @@ const saveUser = async (data) => {
                 name: name,
                 bpno: bpno,
                 phone: phone,
+                sentStatus: 0,
             });
             console.log(`User saved: ${JSON.stringify(user)}`);
             return user;
@@ -24,13 +25,29 @@ const saveUser = async (data) => {
 };
 
 const updateUserById = async (data) => {
-    const { id, groupid, name, bpNo, phone } = data;
+    const { id, groupid, name, bpno, phone } = data;
     try {
         const user = await User.update({
             groupid: groupid,
             name: name,
-            bpno: data.bpno,
+            bpno: bpno,
             phone: phone,
+        }, {
+            id: id
+        });
+        console.log(`User updated: ${JSON.stringify(user)}`);
+        return user;
+    } catch (error) {
+        console.error(`Error updated user:`, error);
+        throw error;
+    }
+};
+
+const updateUserStatusById = async (data) => {
+    const { id, sentStatus } = data;
+    try {
+        const user = await User.update({
+            sentStatus: sentStatus,
         }, {
             id: id
         });
@@ -44,7 +61,7 @@ const updateUserById = async (data) => {
 
 const getUserById = async (id) => {
     try {
-        const user = await User.findAll({ where: { id } });
+        const user = await User.findAll({ where: { id: id } });
         return user;
     } catch (error) {
         console.error("Error retrieving user:", error);
@@ -54,7 +71,7 @@ const getUserById = async (id) => {
 
 const getUserListByGroupId = async (groupid) => {
     try {
-        const users = await User.findAll({ where: { groupid } });
+        const users = await User.findAll({ where: { groupid: groupid } });
         return users;
     } catch (error) {
         console.error("Error retrieving user:", error);
@@ -75,6 +92,7 @@ const deleteUser = async (id) => {
 module.exports = {
     saveUser,
     updateUserById,
+    updateUserStatusById,
     getUserById,
     getUserListByGroupId,
     deleteUser,

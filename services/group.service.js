@@ -81,6 +81,16 @@ const getGroupByName = async (name) => {
     }
 };
 
+const getUnsentGroupList = async () => {
+    try {
+        const groups = await Group.findAll();
+        return groups;
+    } catch (error) {
+        console.error("Error retrieving unsent groups:", error);
+        throw error;
+    }
+};
+
 const deleteGroup = async (id) => {
     try {
         await Group.destroy({ where: { id: id } });
@@ -98,5 +108,6 @@ module.exports = {
     getGroupById,
     getGroupBygId,
     getGroupByName,
+    getUnsentGroupList,
     deleteGroup,
 };
