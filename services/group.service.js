@@ -61,7 +61,7 @@ const updateGroupByName = async (data) => {
             gid: gid,
             name: name,
         }, {
-            where: { name: name, gid: gid },
+            where: { gid, name: name, },
         });
         console.log(`Group updated: ${JSON.stringify(group)}`);
         return group;

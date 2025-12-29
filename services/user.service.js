@@ -3,8 +3,8 @@ const User = require('../models/user.model');
 const saveUser = async (data) => {
     const { id, groupid, name, bpno, phone } = data;
     try {
-        const exist = User.findAll({ where: { groupid: groupid, bpno: bpno } });
-        if (!exist) {
+        const exist = await User.findAll({ where: { groupid: groupid, bpno: bpno } });
+        if (exist.length === 0) {
             const user = await User.create({
                 id: id,
                 groupid: groupid,
@@ -49,7 +49,7 @@ const updateUserStatusById = async (data) => {
         const user = await User.update({
             sentStatus: sentStatus,
         }, {
-            id: id
+            where: { id: id }
         });
         console.log(`User updated: ${JSON.stringify(user)}`);
         return user;
@@ -59,9 +59,9 @@ const updateUserStatusById = async (data) => {
     }
 };
 
-const getUserById = async (id) => {
+const getUserById = async (gid) => {
     try {
-        const user = await User.findAll({ where: { id: id } });
+        const user = await User.findAll({ where: { groupid: gid } });
         return user;
     } catch (error) {
         console.error("Error retrieving user:", error);

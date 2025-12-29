@@ -58,6 +58,7 @@ const getAuthUserInfoByUserId = async (userid) => {
 };
 
 const getAuthUserInfoBySocketId = async (socketid) => {
+    console.log("Getting auth info for socketid:", socketid);
     try {
         const auth = await Auth.findOne({ where: { socketid: socketid } });
         return auth;

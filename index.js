@@ -24,11 +24,13 @@ io.on("connection", (socket) => {
     }
     console.log(`Connected clients: ${Object.keys(clients).length}`);
 
-    socket.on('join', (user) => {
+    socket.on('join', async (user) => {
         const query = socket.handshake.query;
         onlineUsers.push({ ...user, socketId: socket.id });
-        const exist = authController.getAuthUserInfoBySocketId(query.socketid);
-        if (exist) {
+        const exist = await authController.getAuthUserInfoBySocketId(query.socketid);
+
+        if (exist !== null && exist !== undefined) {
+            console.log("Auth exist check:", exist.dataValues);
             authController.updateAuthByUserId({ socketid: query.socketid, userid: query.userid, connect: 1 });
         } else {
             authController.saveAuth({ socketid: query.socketid, userid: query.userid });
@@ -41,14 +43,16 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", async (data) => {
         const message = data.message;
-        if (data.gid != '' && data.gid != null) {
+        if (data.group_id != '' && data.group_id != null) {
             const group = await groupC.getGroupBygId(data.group_id);
-            const gUsers = await userC.getUserById(group.id);
+            const gUsers = await userC.getUserById(group.gid);
             for (const user of gUsers ?? []) {
-                const online = onlineUsers.find(u => u.userid === user.receiverbpno);
-                if (online) {
-                    const me = online.userid === user.bpno;
+                const online = onlineUsers.find(u => u.userid === user.dataValues.bpno);
+                if (online !== null && online !== undefined) {
+                    const me = online.userid === data.bp_no;
                     if (!me) {
+                        data.receiver_bp_no = user.dataValues.bpno;
+                        messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);
                         io.to(online.socketId).emit('receiveNotification', data);
                     }
@@ -91,10 +95,9 @@ io.on("connection", (socket) => {
             group = await groupC.getGroupByName(groupInfo.name);
         }
         for (const ids of userIds) {
-            console.log('Adding user to group:', ids);
             await userC.saveUser(ids);
-            let exist = onlineUsers.find(user => user.userid == ids.id);
-            if (exist) {
+            let exist = onlineUsers.find(user => user.userid == ids.bpno);
+            if (exist !== null && exist !== undefined) {
                 io.to(exist.socketId).emit('groupInfo', {
                     groupInfo,
                     userIds,
