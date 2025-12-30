@@ -45,9 +45,9 @@ io.on("connection", (socket) => {
             const group = await groupC.getGroupBygId(data.group_id);
             const gUsers = await userC.getUserById(group.gid);
             for (const user of gUsers ?? []) {
-                const online = onlineUsers.find(u => u.userid === user.dataValues.bpno);
+                const online = onlineUsers.find(u => u.userid === user.dataValues.bpno || u.userid === user.dataValues.phone);
                 if (online !== null && online !== undefined) {
-                    const me = online.userid === data.bp_no;
+                    const me = online.userid === data.bp_no || online.userid === data.phone;
                     if (!me) {
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
@@ -62,7 +62,7 @@ io.on("connection", (socket) => {
                 }
             }
         } else if (data.role_id != null && data.role_id != undefined) {
-            const online = onlineUsers.find(u => u.userid === data.receiver_bp_no);
+            const online = onlineUsers.find(u => u.userid === data.receiver_bp_no || u.userid === data.phone);
             if (online !== null && online !== undefined) {
                 clients[online.socketId].emit("receiveMessage", data);
                 io.to(online.socketId).emit('receiveNotification', data);
