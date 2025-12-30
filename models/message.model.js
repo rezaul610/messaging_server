@@ -6,7 +6,7 @@ const Message = sequelize.define("Message", {
     bpno: { type: DataTypes.STRING, allowNull: false },
     receiverbpno: { type: DataTypes.STRING, allowNull: false },
     message: { type: DataTypes.STRING, allowNull: false },
-    groupid: { type: DataTypes.STRING, allowNull: false },
+    groupid: { type: DataTypes.STRING, allowNull: true },
     messagetype: { type: DataTypes.STRING, allowNull: false },
     datetime: { type: DataTypes.STRING, allowNull: false },
     sentstatus: { type: DataTypes.INTEGER, allowNull: false },

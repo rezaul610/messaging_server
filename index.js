@@ -9,8 +9,6 @@ const messageController = require("./controllers/message.controller");
 const groupC = require('./controllers/group.controller');
 const userC = require('./controllers/user.controller');
 
-const PORT = 3000;
-
 let clients = [];
 let onlineUsers = [];
 
@@ -43,7 +41,7 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", async (data) => {
         const message = data.message;
-        if (data.group_id != '' && data.group_id != null) {
+        if (data.group_id != 'N/A' && data.group_id != null) {
             const group = await groupC.getGroupBygId(data.group_id);
             const gUsers = await userC.getUserById(group.gid);
             for (const user of gUsers ?? []) {
@@ -63,16 +61,28 @@ io.on("connection", (socket) => {
                     }
                 }
             }
-        } else if (data.token === 'N/A') {
-            messageController.saveMessage(data, data.receiverbpno);
-        } else {
-            const online = onlineUsers.find(u => u.socketid === data.token);
-            if (clients[online.socketId]) {
+        } else if (data.role_id != null && data.role_id != undefined) {
+            const online = onlineUsers.find(u => u.userid === data.receiver_bp_no);
+            if (online !== null && online !== undefined) {
                 clients[online.socketId].emit("receiveMessage", data);
                 io.to(online.socketId).emit('receiveNotification', data);
-                console.log(`📨 Sent to ${online.socketId}: ${message}`);
+                console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
             } else {
-                console.log(`⚠️ Target device not connected: ${online.socketId}`);
+                messageController.saveMessage(data, data.receiver_bp_no);
+            }
+        } else {
+            if (data.token === 'N/A') {
+                messageController.saveMessage(data, data.receiver_bp_no);
+            } else {
+                console.log("Sending message to token:", data);
+                const online = onlineUsers.find(u => u.socketid === data.token);
+                if (clients[online.socketId]) {
+                    clients[online.socketId].emit("receiveMessage", data);
+                    io.to(online.socketId).emit('receiveNotification', data);
+                    console.log(`📨 Sent to ${online.socketId}: ${message}`);
+                } else {
+                    console.log(`⚠️ Target device not connected: ${online.socketId}`);
+                }
             }
         }
     });
@@ -135,4 +145,4 @@ app.get("/users", async (req, res) => {
     res.json(Array.from(onlineUsers));
 });
 
-server.listen(PORT, () => console.log(`Server running on ${PORT}`));
+server.listen(process.env.APP_PORT, () => console.log(`Server running on ${process.env.APP_PORT}`));

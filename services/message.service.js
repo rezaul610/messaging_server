@@ -11,7 +11,7 @@ const saveMessage = async (data, bpno) => {
             datetime: data.date_time,
             sentstatus: 0,
         });
-        console.log(`Message saved: ${JSON.stringify(newMessage)}`);
+        // console.log(`Message saved: ${JSON.stringify(newMessage)}`);
         return newMessage;
     } catch (error) {
         console.error("Error saving message:", error);
