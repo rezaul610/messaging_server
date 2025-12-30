@@ -74,12 +74,11 @@ io.on("connection", (socket) => {
             if (data.token === 'N/A') {
                 messageController.saveMessage(data, data.receiver_bp_no);
             } else {
-                console.log("Sending message to token:", data);
                 const online = onlineUsers.find(u => u.socketid === data.token);
                 if (clients[online.socketId]) {
                     clients[online.socketId].emit("receiveMessage", data);
                     io.to(online.socketId).emit('receiveNotification', data);
-                    console.log(`📨 Sent to ${online.socketId}: ${message}`);
+                    console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
                 } else {
                     console.log(`⚠️ Target device not connected: ${online.socketId}`);
                 }
