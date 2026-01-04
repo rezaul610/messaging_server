@@ -1,7 +1,9 @@
 const messageService = require("../services/message.service");
+const uploads = require('../middleware/uploads');
 
 const saveMessage = async (data, bpno) => {
-    return await messageService.saveMessage(data, bpno);
+    const fileData = uploads.saveBase64Image(data.message);
+    return await messageService.saveMessage(data, bpno, fileData.path);
 };
 
 const getAllMessages = async () => {
@@ -22,8 +24,9 @@ const sendBroadcastMessage = async (io, onlines) => {
         for (const msg of messages) {
             for (const user of onlines) {
                 if (user.userid === msg.receiverbpno) {
+                    const message = uploads.getImageAsBase64(msg.message);
                     io.to(user.socketId).emit("receiveMessage", {
-                        message: msg.message,
+                        message: message,
                         token: user.socketid,
                         bpNo: msg.bpNo,
                         receiverbpno: msg.receiverbpno,

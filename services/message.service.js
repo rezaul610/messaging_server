@@ -1,17 +1,16 @@
 const Message = require("../models/message.model");
 
-const saveMessage = async (data, bpno) => {
+const saveMessage = async (data, bpno, filePath) => {
     try {
         const newMessage = await Message.create({
             bpno: data.bp_no,
             receiverbpno: bpno,
-            message: data.message,
+            message: filePath,
             groupid: data.group_id,
             messagetype: data.type,
             datetime: data.date_time,
             sentstatus: 0,
         });
-        // console.log(`Message saved: ${JSON.stringify(newMessage)}`);
         return newMessage;
     } catch (error) {
         console.error("Error saving message:", error);
