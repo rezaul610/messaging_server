@@ -24,7 +24,10 @@ const sendBroadcastMessage = async (io, onlines) => {
         for (const msg of messages) {
             for (const user of onlines) {
                 if (user.userid === msg.receiverbpno) {
-                    const message = uploads.getImageAsBase64(msg.message);
+                    const message = msg.message;
+                    if (msg.messageType !== 'text') {
+                        message = uploads.getImageAsBase64(msg.message);
+                    }
                     io.to(user.socketId).emit("receiveMessage", {
                         message: message,
                         token: user.socketid,
