@@ -35,6 +35,7 @@ function saveBase64Image(base64Image) {
 
     const filename = `${type}_${Date.now()}.${ext}`;
     const filePath = path.join(uploadDir, filename);
+    console.log(`Saving image to: ${filePath}`);
 
     fs.writeFileSync(filePath, buffer);
 
@@ -55,28 +56,23 @@ function getImageAsBase64(filePath) {
         throw new Error('File path is required');
     }
 
-    const fullPath = path.join(process.cwd(), filePath);
-    const filename = path.basename(fullPath);
+    const filename = path.basename(filePath);
     const fileNama = filename.split('_')[0];
     const ext = filename.split('.')[1];
     const mime = `${fileNama}/${ext}`;
 
-    if (!fs.existsSync(fullPath)) {
+    if (!fs.existsSync(filePath)) {
         throw new Error('Image not found');
     }
 
     // Detect mime type from extension
-    // const ext = path.extname(fullPath).replace('.', '');
+    // const ext = path.extname(filePath).replace('.', '');
     // const mime = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
-    const imageBuffer = fs.readFileSync(fullPath);
+    const imageBuffer = fs.readFileSync(filePath);
     const base64 = `data:${mime};base64,${imageBuffer.toString('base64')}`;
 
-    return {
-        success: true,
-        base64,
-        mime
-    };
+    return base64;
 }
 
 module.exports = {

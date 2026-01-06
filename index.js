@@ -49,6 +49,7 @@ io.on("connection", (socket) => {
                 if (online !== null && online !== undefined) {
                     const me = online.userid === data.bp_no || online.userid === data.phone;
                     if (!me) {
+                        console.log(`📨 Sending to ${online.socketId}: ${data}`);
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);

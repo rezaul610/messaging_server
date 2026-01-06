@@ -24,7 +24,7 @@ const sendBroadcastMessage = async (io, onlines) => {
         for (const msg of messages) {
             for (const user of onlines) {
                 if (user.userid === msg.receiverbpno) {
-                    const message = msg.message;
+                    let message = msg.message;
                     if (msg.messageType !== 'text') {
                         message = uploads.getImageAsBase64(msg.message);
                     }
