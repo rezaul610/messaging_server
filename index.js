@@ -34,8 +34,8 @@ io.on("connection", (socket) => {
             authController.saveAuth({ socketid: query.socketid, userid: query.userid });
         }
         io.emit('discoverUsers', onlineUsers);
-        groupC.broadcastGroupInfo(io, onlineUsers);
-        messageController.sendBroadcastMessage(io, onlineUsers);
+        await groupC.broadcastGroupInfo(io, onlineUsers);
+        await messageController.sendBroadcastMessage(io, onlineUsers);
         console.log({ ...user, socketId: socket.id });
     });
 

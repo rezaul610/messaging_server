@@ -30,16 +30,16 @@ const deteteGroup = async (id) => {
 };
 
 const broadcastGroupInfo = async (io, onlineUsers) => {
-    const groups = await groupService.getUnsentGroupList();
-    if (groups.length > 0 && onlineUsers.length > 0) {
-        for (const group of groups) {
-            const users = await userService.getUserListByGroupId(group.gid);
-            for (const user of users ?? []) {
-                const online = onlineUsers.find(u => u.userid === user.receiverbpno);
-                if (online) {
+    const groupList = await groupService.getUnsentGroupList();
+    if (groupList.length > 0 && onlineUsers.length > 0) {
+        for (const groupInfo of groupList) {
+            const userIds = await userService.getUserListByGroupId(groupInfo.gid);
+            for (const user of userIds ?? []) {
+                const online = onlineUsers.find(u => u.userid === user.bpno);
+                if (online !== null && online !== undefined) {
                     io.to(online.socketId).emit('groupInfo', {
-                        group,
-                        users
+                        groupInfo,
+                        userIds
                     });
                     userService.updateUserStatusById({ id: user.id, sentStatus: 1 });
                 }
