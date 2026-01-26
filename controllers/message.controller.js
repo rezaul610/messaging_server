@@ -1,5 +1,6 @@
 const messageService = require("../services/message.service");
 const uploads = require('../middleware/uploads');
+const notify = require('../middleware/notify');
 
 const saveMessage = async (data, bpno) => {
     if (data.type !== 'text') {
@@ -41,7 +42,8 @@ const sendBroadcastMessage = async (io, onlines) => {
                         type: msg.messageType,
                         dateTime: msg.dateTime,
                     });
-                    io.to(user.socketId).emit('receiveNotification', { 'token': user.socketId, 'bp_no': msg.bpNo, 'message': msg.message });
+                    await notify.sendNotification(notify.pushtoken, `Dart Messanger: ${msg.bpNo}`, msg.message);
+                    // io.to(user.socketId).emit('receiveNotification', { 'token': user.socketId, 'bp_no': msg.bpNo, 'message': msg.message });
                     await messageService.deleteMessage(msg.id);
                 }
             }

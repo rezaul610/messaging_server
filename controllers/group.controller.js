@@ -1,5 +1,6 @@
 const groupService = require('../services/group.service');
 const userService = require('../services/user.service');
+const notify = require('../middleware/notify');
 
 const saveGroup = async (data) => {
     return await groupService.saveGroup(data);
@@ -41,6 +42,7 @@ const broadcastGroupInfo = async (io, onlineUsers) => {
                         groupInfo,
                         userIds
                     });
+                    await notify.sendNotification(notify.pushtoken, 'Dart Messanger', 'You have a new group added.');
                     userService.updateUserStatusById({ id: user.id, sentStatus: 1 });
                 }
             }

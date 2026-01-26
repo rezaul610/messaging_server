@@ -8,6 +8,7 @@ const authController = require('./controllers/auth.controller');
 const messageController = require("./controllers/message.controller");
 const groupC = require('./controllers/group.controller');
 const userC = require('./controllers/user.controller');
+const notify = require('./middleware/notify');
 
 let clients = [];
 let onlineUsers = [];
@@ -25,6 +26,7 @@ io.on("connection", (socket) => {
     socket.on('join', async (user) => {
         const query = socket.handshake.query;
         onlineUsers.push({ ...user, socketId: socket.id });
+        await notify.sendNotification(user.pushtoken, `Dart Messanger: ${user.userid}`, `${user.userid} has been left.`);
         const exist = await authController.getAuthUserInfoBySocketId(query.socketid);
 
         if (exist !== null && exist !== undefined) {
@@ -53,7 +55,8 @@ io.on("connection", (socket) => {
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);
-                        io.to(online.socketId).emit('receiveNotification', data);
+                        await notify.sendNotification(online.pushtoken, `Dart Messanger: ${data.bpNo}`, data.message);
+                        // io.to(online.socketId).emit('receiveNotification', data);
                     }
                 } else {
                     const gmessage = await messageController.getMessageByGroupData(data);
@@ -66,7 +69,8 @@ io.on("connection", (socket) => {
             const online = onlineUsers.find(u => u.userid === data.receiver_bp_no || u.userid === data.phone);
             if (online !== null && online !== undefined) {
                 clients[online.socketId].emit("receiveMessage", data);
-                io.to(online.socketId).emit('receiveNotification', data);
+                // io.to(online.socketId).emit('receiveNotification', data);
+                await notify.sendNotification(online.pushtoken, `Dart Messanger: ${data.bpNo}`, data.message);
                 console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
             } else {
                 messageController.saveMessage(data, data.receiver_bp_no);
@@ -78,7 +82,8 @@ io.on("connection", (socket) => {
                 const online = onlineUsers.find(u => u.socketid === data.token);
                 if (clients[online.socketId]) {
                     clients[online.socketId].emit("receiveMessage", data);
-                    io.to(online.socketId).emit('receiveNotification', data);
+                    // io.to(online.socketId).emit('receiveNotification', data);
+                    await notify.sendNotification(online.pushtoken, `Dart Messanger: ${data.bpNo}`, data.message);
                     console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
                 } else {
                     console.log(`⚠️ Target device not connected: ${online.socketId}`);
@@ -113,7 +118,8 @@ io.on("connection", (socket) => {
                     userIds,
                 });
                 await userC.updateUserStatusById({ id: ids.id, sentStatus: 1 });
-                io.to(exist.socketId).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
+                await notify.sendNotification(exist.pushtoken, `Dart Messanger`, 'New group created named ' + groupInfo.name);
+                // io.to(exist.socketId).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
             }
         }
     });
@@ -128,11 +134,12 @@ io.on("connection", (socket) => {
         socket.emit('discoverUsers', onlineUsers);
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
         if (onlineUsers.length > 0) {
             const index = onlineUsers.findIndex(u => u.socketId === token);
             const userinfo = onlineUsers[index];
             onlineUsers.splice(index, 1);
+            await notify.sendNotification(userinfo.pushtoken, `Dart Messanger`, `${userinfo.userid} has been left.`);
             authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
         }
         console.log(`❌ Device disconnected: ${token}`);
