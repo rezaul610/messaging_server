@@ -2,8 +2,11 @@ const messageService = require("../services/message.service");
 const uploads = require('../middleware/uploads');
 
 const saveMessage = async (data, bpno) => {
-    const fileData = uploads.saveBase64Image(data.message);
-    return await messageService.saveMessage(data, bpno, fileData.path);
+    if (data.type !== 'text') {
+        const fileData = uploads.saveBase64Image(data.message);
+        return await messageService.saveMessage(data, bpno, fileData.path);
+    }
+    return await messageService.saveMessage(data, bpno, '');
 };
 
 const getAllMessages = async () => {
