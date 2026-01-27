@@ -24,6 +24,21 @@ const sendNotification = async (token, title, body, data = {}) => {
     }
 };
 
+async function sendMulticast(tokens, title, body, data = {}) {
+    const message = {
+        tokens,
+        notification: {
+            title: title,
+            body: body,
+        },
+        data: data,
+    };
+
+    return messaging.sendEachForMulticast(message);
+}
+
+
 module.exports = {
     sendNotification,
+    sendMulticast,
 };
