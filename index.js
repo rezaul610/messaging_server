@@ -17,16 +17,16 @@ const io = require("socket.io")(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
     const token = socket.id;
+    const query = socket.handshake.query;
     if (token) {
         clients[token] = socket;
         console.log(`✅ Device connected: ${token}`);
     }
-    console.log(`Connected clients: ${Object.keys(clients).length}`);
+    console.log(`Connected clients: ${Object.keys(clients).length}  ${query.pushtoken}`);
 
     socket.on('join', async (user) => {
-        const query = socket.handshake.query;
-        onlineUsers.push({ ...user, socketId: socket.id });
-        await notify.sendNotification(user.pushtoken, `Dart Messanger: ${user.userid}`, `${user.userid} has been left.`);
+        console.log(`User joined: ${JSON.stringify(user)}`);
+        onlineUsers.push({ ...user, socketId: socket.id, pushtoken: query.pushtoken });
         const exist = await authController.getAuthUserInfoBySocketId(query.socketid);
 
         if (exist !== null && exist !== undefined) {
@@ -38,7 +38,9 @@ io.on("connection", (socket) => {
         io.emit('discoverUsers', onlineUsers);
         await groupC.broadcastGroupInfo(io, onlineUsers);
         await messageController.sendBroadcastMessage(io, onlineUsers);
-        console.log({ ...user, socketId: socket.id });
+        await notify.sendNotification(query.pushtoken, `Dart Chat`, `${user.userid} has been joined.`);
+
+        console.log(onlineUsers);
     });
 
     socket.on("sendMessage", async (data) => {
@@ -55,7 +57,7 @@ io.on("connection", (socket) => {
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);
-                        await notify.sendNotification(online.pushtoken, `Dart Messanger: ${data.bpNo}`, data.message);
+                        await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, { type: 'group' });
                         // io.to(online.socketId).emit('receiveNotification', data);
                     }
                 } else {
@@ -70,7 +72,7 @@ io.on("connection", (socket) => {
             if (online !== null && online !== undefined) {
                 clients[online.socketId].emit("receiveMessage", data);
                 // io.to(online.socketId).emit('receiveNotification', data);
-                await notify.sendNotification(online.pushtoken, `Dart Messanger: ${data.bpNo}`, data.message);
+                await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, { type: 'broadcast' });
                 console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
             } else {
                 messageController.saveMessage(data, data.receiver_bp_no);
@@ -83,7 +85,7 @@ io.on("connection", (socket) => {
                 if (clients[online.socketId]) {
                     clients[online.socketId].emit("receiveMessage", data);
                     // io.to(online.socketId).emit('receiveNotification', data);
-                    await notify.sendNotification(online.pushtoken, `Dart Messanger: ${data.bpNo}`, data.message);
+                    await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, { type: 'chat' });
                     console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
                 } else {
                     console.log(`⚠️ Target device not connected: ${online.socketId}`);
@@ -118,7 +120,7 @@ io.on("connection", (socket) => {
                     userIds,
                 });
                 await userC.updateUserStatusById({ id: ids.id, sentStatus: 1 });
-                await notify.sendNotification(exist.pushtoken, `Dart Messanger`, 'New group created named ' + groupInfo.name);
+                await notify.sendNotification(exist.pushtoken, `Dart Chat`, 'New group created named ' + groupInfo.name);
                 // io.to(exist.socketId).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
             }
         }
@@ -139,7 +141,7 @@ io.on("connection", (socket) => {
             const index = onlineUsers.findIndex(u => u.socketId === token);
             const userinfo = onlineUsers[index];
             onlineUsers.splice(index, 1);
-            await notify.sendNotification(userinfo.pushtoken, `Dart Messanger`, `${userinfo.userid} has been left.`);
+            await notify.sendNotification(userinfo.pushtoken, `Dart Chat`, `${userinfo.userid} has been left.`);
             authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
         }
         console.log(`❌ Device disconnected: ${token}`);

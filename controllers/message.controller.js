@@ -42,7 +42,7 @@ const sendBroadcastMessage = async (io, onlines) => {
                         type: msg.messageType,
                         dateTime: msg.dateTime,
                     });
-                    await notify.sendNotification(notify.pushtoken, `Dart Messanger: ${msg.bpNo}`, msg.message);
+                    await notify.sendNotification(notify.pushtoken, `Dart Chat: ${msg.bpNo}`, msg.message);
                     // io.to(user.socketId).emit('receiveNotification', { 'token': user.socketId, 'bp_no': msg.bpNo, 'message': msg.message });
                     await messageService.deleteMessage(msg.id);
                 }
