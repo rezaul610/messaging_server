@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
         io.emit('discoverUsers', onlineUsers);
         await groupC.broadcastGroupInfo(io, onlineUsers);
         await messageController.sendBroadcastMessage(io, onlineUsers);
-        const onlineTokens = onlineUsers.map(u => u.pushtoken);
+        const onlineTokens = onlineUsers.map(u => u.pushtoken && u.pushtoken !== query.pushtoken);
         await notify.sendMulticast(onlineTokens, `Dart Chat`, `${user.userid} has been joined.`);
         console.log(onlineUsers);
     });
@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);
-                        await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, { type: 'group' });
+                        await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, data);
                         // io.to(online.socketId).emit('receiveNotification', data);
                     }
                 } else {
@@ -72,7 +72,7 @@ io.on("connection", (socket) => {
             if (online !== null && online !== undefined) {
                 clients[online.socketId].emit("receiveMessage", data);
                 // io.to(online.socketId).emit('receiveNotification', data);
-                await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, { type: 'broadcast' });
+                await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, data);
                 console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
             } else {
                 messageController.saveMessage(data, data.receiver_bp_no);
@@ -85,7 +85,7 @@ io.on("connection", (socket) => {
                 const onTokens = online.map(u => u.pushtoken);
                 if (clients[online.socketId]) {
                     clients[online.socketId].emit("receiveMessage", data);
-                    await notify.sendMulticast(onTokens, `Dart Chat: ${data.bpNo}`, data.message, { type: 'chat' });
+                    await notify.sendMulticast(onTokens, `Dart Chat: ${data.bpNo}`, data.message, data);
                     console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
                 } else {
                     console.log(`⚠️ Target device not connected: ${online.socketId}`);
@@ -140,7 +140,7 @@ io.on("connection", (socket) => {
         if (onlineUsers.length > 0) {
             const index = onlineUsers.findIndex(u => u.socketId === token);
             const userinfo = onlineUsers[index];
-            const onlineTokens = onlineUsers.map(u => u.pushtoken);
+            const onlineTokens = onlineUsers.map(u => u.pushtoken && u.pushtoken !== userinfo.pushtoken);
             await notify.sendMulticast(onlineTokens, `Dart Chat`, `${userinfo.userid} has been left.`);
             onlineUsers.splice(index, 1);
             authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
