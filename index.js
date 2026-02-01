@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
                     userIds,
                 });
                 await userC.updateUserStatusById({ id: ids.id, sentStatus: 1 });
-                await notify.sendNotification(exist.pushtoken, `Dart Chat`, 'New group created named ' + groupInfo.name);
+                await notify.sendNotification(exist.pushtoken, `Dart Chat`, `New group created named ${groupInfo.name}`);
                 // io.to(exist.socketId).emit('receiveNotification', { message: 'New group created named ' + groupInfo.name });
             }
         }
