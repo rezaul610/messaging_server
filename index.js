@@ -39,7 +39,9 @@ io.on("connection", (socket) => {
         await groupC.broadcastGroupInfo(io, onlineUsers);
         await messageController.sendBroadcastMessage(io, onlineUsers);
         const onlineTokens = onlineUsers.map(u => u.pushtoken && u.pushtoken !== query.pushtoken);
-        await notify.sendMulticast(onlineTokens, `Dart Chat`, `${user.userid} has been joined.`);
+        if (onlineTokens.length > 0) {
+            await notify.sendMulticast(onlineTokens, `Dart Chat`, `${user.userid} has been joined.`);
+        }
         console.log(onlineUsers);
     });
 
@@ -85,7 +87,9 @@ io.on("connection", (socket) => {
                 const onTokens = online.map(u => u.pushtoken);
                 if (clients[online.socketId]) {
                     clients[online.socketId].emit("receiveMessage", data);
-                    await notify.sendMulticast(onTokens, `Dart Chat: ${data.bpNo}`, data.message, data);
+                    if (onTokens.length > 0) {
+                        await notify.sendMulticast(onTokens, `Dart Chat: ${data.bpNo}`, data.message, data);
+                    }
                     console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
                 } else {
                     console.log(`⚠️ Target device not connected: ${online.socketId}`);
