@@ -5,7 +5,7 @@ const saveMessage = async (data, bpno, filePath) => {
         const newMessage = await Message.create({
             bpno: data.bp_no,
             receiverbpno: bpno,
-            message: filePath,
+            message: filePath !== '' ? filePath : data.message,
             groupid: data.group_id,
             messagetype: data.type,
             datetime: data.date_time,
