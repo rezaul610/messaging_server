@@ -9,18 +9,18 @@ const messaging = admin.messaging();
 
 const sendNotification = async (token, title, body, data = {}) => {
     if (Object.keys(data).length !== 0) {
-        data = { ...data, message: data.type !== 'text' ? 'Attachment Received' : `${data.message}`, is_me: `${data.is_me}`, group_id: data.group_id != null ? `${data.group_id}` : 'N/A', role_id: data.role_id != null ? `${data.role_id}` : 'N/A', receive_bp_no: data.receive_bp_no != null ? `${data.receive_bp_no}` : 'N/A', token: data.token != null ? `${data.token}` : 'N/A' };
+        data = { ...data, is_read: data.is_read != null ? `${data.is_read}` : 'N/A', message: data.type !== 'text' ? 'Attachment Received' : `${data.message}`, is_me: `${data.is_me}`, group_id: data.group_id != null ? `${data.group_id}` : 'N/A', role_id: data.role_id != null ? `${data.role_id}` : 'N/A', receive_bp_no: data.receive_bp_no != null ? `${data.receive_bp_no}` : 'N/A', token: data.token != null ? `${data.token}` : 'N/A' };
+    } else {
+        data = { dal: 'true' };
     }
     const message = {
         token: token,
         notification: {
             title: title,
-            body: Object.keys(data).length !== 0 ? (data.type == 'text' ? body : 'Attachment Received') : body,
+            body: Object.keys(data).length !== 1 ? (data.type == 'text' ? body : 'Attachment Received') : body,
         },
         data: data,
-
     };
-    console.log("Sending message to token:", message);
     try {
         const response = await messaging.send(message);
         console.log("Successfully sent message:", response);
