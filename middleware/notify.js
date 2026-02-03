@@ -8,14 +8,17 @@ admin.initializeApp({
 const messaging = admin.messaging();
 
 const sendNotification = async (token, title, body, data = {}) => {
+    data = { ...data, message: data.type !== 'text' ? 'Attachment Received' : `${data.message}`, is_me: `${data.is_me}`, group_id: data.group_id != null ? `${data.group_id}` : 'N/A', role_id: data.role_id != null ? `${data.role_id}` : 'N/A', receive_bp_no: data.receive_bp_no != null ? `${data.receive_bp_no}` : 'N/A', token: data.token != null ? `${data.token}` : 'N/A' };
     const message = {
+        token: token,
         notification: {
             title: title,
-            body: body,
+            body: data.type == 'text' ? body : 'Attachment Received',
         },
         data: data,
-        token: token,
+
     };
+    console.log("Sending message to token:", message);
     try {
         const response = await messaging.send(message);
         console.log("Successfully sent message:", response);
@@ -25,16 +28,11 @@ const sendNotification = async (token, title, body, data = {}) => {
 };
 
 async function sendMulticast(tokens, title, body, data = {}) {
-    const message = {
-        tokens,
-        notification: {
-            title: title,
-            body: body,
-        },
-        data: data,
-    };
+    for (let i = 0; i < tokens.length; i++) {
+        sendNotification(tokens[i], title, body, data);
+    }
 
-    return messaging.sendEachForMulticast(message);
+    return true;
 }
 
 

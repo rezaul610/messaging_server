@@ -36,9 +36,13 @@ io.on("connection", (socket) => {
             authController.saveAuth({ socketid: query.socketid, userid: query.userid });
         }
         io.emit('discoverUsers', onlineUsers);
-        await groupC.broadcastGroupInfo(io, onlineUsers);
+        await groupC.broadcastGroupInfo(io, onlineUsers);// && u.pushtoken !== query.pushtoken
         await messageController.sendBroadcastMessage(io, onlineUsers);
-        const onlineTokens = onlineUsers.map(u => u.pushtoken && u.pushtoken !== query.pushtoken);
+        const onlineTokens = onlineUsers.map(u => u.pushtoken);
+        const indx = onlineTokens.indexOf(query.pushtoken);
+        if (indx > -1) {
+            onlineTokens.splice(indx, 1);
+        }
         if (onlineTokens.length > 0) {
             await notify.sendMulticast(onlineTokens, `Dart Chat`, `${user.userid} has been joined.`);
         }
@@ -59,7 +63,7 @@ io.on("connection", (socket) => {
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);
-                        await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, data);
+                        await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bp_no}`, data.message, data);
                         // io.to(online.socketId).emit('receiveNotification', data);
                     }
                 } else {
@@ -74,8 +78,8 @@ io.on("connection", (socket) => {
             if (online !== null && online !== undefined) {
                 clients[online.socketId].emit("receiveMessage", data);
                 // io.to(online.socketId).emit('receiveNotification', data);
-                await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bpNo}`, data.message, data);
-                console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
+                await notify.sendNotification(online.pushtoken, `Dart Chat: ${data.bp_no}`, data.message, data);
+                // console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
             } else {
                 messageController.saveMessage(data, data.receiver_bp_no);
             }
@@ -84,11 +88,15 @@ io.on("connection", (socket) => {
                 messageController.saveMessage(data, data.receiver_bp_no);
             } else {
                 const online = onlineUsers.find(u => u.socketid === data.token);
-                const onTokens = online.map(u => u.pushtoken);
+                const onTokens = onlineUsers.map(u => u.pushtoken);
+                const indx = onTokens.indexOf(query.pushtoken);
+                if (indx > -1) {
+                    onTokens.splice(indx, 1);
+                }
                 if (clients[online.socketId]) {
                     clients[online.socketId].emit("receiveMessage", data);
                     if (onTokens.length > 0) {
-                        await notify.sendMulticast(onTokens, `Dart Chat: ${data.bpNo}`, data.message, data);
+                        await notify.sendMulticast(onTokens, `Dart Chat: ${data.bp_no}`, data.message, data);
                     }
                     console.log(`📨 Sent to ${online.socketId}: ${data.message}`);
                 } else {
@@ -144,7 +152,11 @@ io.on("connection", (socket) => {
         if (onlineUsers.length > 0) {
             const index = onlineUsers.findIndex(u => u.socketId === token);
             const userinfo = onlineUsers[index];
-            const onlineTokens = onlineUsers.map(u => u.pushtoken && u.pushtoken !== userinfo.pushtoken);
+            const onlineTokens = onlineUsers.map(u => u.pushtoken);
+            const indx = onlineTokens.indexOf(query.pushtoken);
+            if (indx > -1) {
+                onlineTokens.splice(indx, 1);
+            }
             await notify.sendMulticast(onlineTokens, `Dart Chat`, `${userinfo.userid} has been left.`);
             onlineUsers.splice(index, 1);
             authController.updateAuthByUserId({ socketid: userinfo.socketid, userid: userinfo.userid, connect: 0 });
