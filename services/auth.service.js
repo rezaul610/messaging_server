@@ -1,4 +1,8 @@
 const Auth = require('../models/auth.model');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
+const secret = process.env.JWT_SECRET || "secretkey";
 
 const saveAuth = async (data) => {
     const { socketid, userid } = data;
@@ -77,6 +81,24 @@ const deleteAuth = async (socketid) => {
         throw error;
     }
 };
+
+function generateToken(user) {
+    return jwt.sign({ id: user.id, username: user.username }, secret, { expiresIn: "7d" });
+}
+
+async function verifyToken(token) {
+    return jwt.verify(token, secret);
+}
+
+async function hashPassword(password) {
+    return bcrypt.hash(password, 10);
+}
+
+async function comparePassword(password, hash) {
+    return bcrypt.compare(password, hash);
+}
+
+module.exports = { generateToken, verifyToken, hashPassword, comparePassword };
 
 module.exports = {
     saveAuth,

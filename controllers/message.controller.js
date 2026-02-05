@@ -1,6 +1,6 @@
 const messageService = require("../services/message.service");
 const uploads = require('../middleware/uploads');
-const notify = require('../middleware/notify');
+const notify = require('../middleware/notify.middleware');
 
 const saveMessage = async (data, bpno) => {
     if (data.type !== 'text') {

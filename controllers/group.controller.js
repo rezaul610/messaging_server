@@ -1,6 +1,6 @@
 const groupService = require('../services/group.service');
 const userService = require('../services/user.service');
-const notify = require('../middleware/notify');
+const notify = require('../middleware/notify.middleware');
 
 const saveGroup = async (data) => {
     return await groupService.saveGroup(data);

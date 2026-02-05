@@ -8,7 +8,7 @@ const authController = require('./controllers/auth.controller');
 const messageController = require("./controllers/message.controller");
 const groupC = require('./controllers/group.controller');
 const userC = require('./controllers/user.controller');
-const notify = require('./middleware/notify');
+const notify = require('./middleware/notify.middleware');
 
 let clients = [];
 let onlineUsers = [];
