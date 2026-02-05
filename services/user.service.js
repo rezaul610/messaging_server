@@ -61,7 +61,7 @@ const updateUserStatusById = async (data) => {
 
 const getUserById = async (gid) => {
     try {
-        const user = await User.findAll({ where: { groupid: gid } });
+        const user = await User.findAll({ where: { groupid: gid, sentStatus: 0 } });
         return user;
     } catch (error) {
         console.error("Error retrieving user:", error);

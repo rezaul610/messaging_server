@@ -36,8 +36,8 @@ io.on("connection", (socket) => {
             authController.saveAuth({ socketid: query.socketid, userid: query.userid });
         }
         io.emit('discoverUsers', onlineUsers);
-        await groupC.broadcastGroupInfo(io, onlineUsers);// && u.pushtoken !== query.pushtoken
-        await messageController.sendBroadcastMessage(io, onlineUsers);
+        await groupC.broadcastGroupInfo(io, onlineUsers);
+        // await messageController.sendBroadcastMessage(io, onlineUsers);
         const onlineTokens = onlineUsers.map(u => u.pushtoken);
         const indx = onlineTokens.indexOf(query.pushtoken);
         if (indx > -1) {

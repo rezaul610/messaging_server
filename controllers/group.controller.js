@@ -42,7 +42,7 @@ const broadcastGroupInfo = async (io, onlineUsers) => {
                         groupInfo,
                         userIds
                     });
-                    await notify.sendNotification(notify.pushtoken, 'Dart Chat', 'You have a new group added.');
+                    await notify.sendNotification(online.pushtoken, 'Dart Chat', 'You have a new group added.');
                     userService.updateUserStatusById({ id: user.id, sentStatus: 1 });
                 }
             }

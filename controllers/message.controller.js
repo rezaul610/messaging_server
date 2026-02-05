@@ -29,7 +29,7 @@ const sendBroadcastMessage = async (io, onlines) => {
             for (const user of onlines) {
                 if (user.userid === msg.receiverbpno) {
                     let message = msg.message;
-                    if (msg.messageType !== 'text') {
+                    if (msg.messagetype !== 'text') {
                         message = uploads.getImageAsBase64(msg.message);
                     }
                     io.to(user.socketId).emit("receiveMessage", {
@@ -39,10 +39,10 @@ const sendBroadcastMessage = async (io, onlines) => {
                         receiverbpno: msg.receiverbpno,
                         groupid: msg.groupid,
                         isMe: false,
-                        type: msg.messageType,
+                        type: msg.messagetype,
                         dateTime: msg.dateTime,
                     });
-                    await notify.sendNotification(notify.pushtoken, `Dart Chat: ${msg.bpNo}`, msg.message);
+                    await notify.sendNotification(user.pushtoken, `Dart Chat: ${msg.bpNo}`, msg.message);
                     // io.to(user.socketId).emit('receiveNotification', { 'token': user.socketId, 'bp_no': msg.bpNo, 'message': msg.message });
                     await messageService.deleteMessage(msg.id);
                 }
