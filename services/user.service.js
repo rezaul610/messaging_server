@@ -1,6 +1,6 @@
 const User = require('../models/user.model');
 
-const saveUser = async (data) => {
+const saveUser = async (data, userid) => {
     const { id, groupid, name, bpno, phone } = data;
     try {
         const exist = await User.findAll({ where: { groupid: groupid, bpno: bpno } });
@@ -11,7 +11,7 @@ const saveUser = async (data) => {
                 name: name,
                 bpno: bpno,
                 phone: phone,
-                sentStatus: 0,
+                sentStatus: bpno === userid ? 1 : 0,
             });
             console.log(`User saved: ${JSON.stringify(user)}`);
             return user;

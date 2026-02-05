@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
         }
         io.emit('discoverUsers', onlineUsers);
         await groupC.broadcastGroupInfo(io, onlineUsers);
-        // await messageController.sendBroadcastMessage(io, onlineUsers);
+        await messageController.sendBroadcastMessage(io, onlineUsers);
         const onlineTokens = onlineUsers.map(u => u.pushtoken);
         const indx = onlineTokens.indexOf(query.pushtoken);
         if (indx > -1) {
@@ -124,7 +124,7 @@ io.on("connection", (socket) => {
             group = await groupC.getGroupByName(groupInfo.name);
         }
         for (const ids of userIds) {
-            await userC.saveUser(ids);
+            await userC.saveUser(ids, query.userid);
             let exist = onlineUsers.find(user => user.userid == ids.bpno);
             if (exist !== null && exist !== undefined) {
                 io.to(exist.socketId).emit('groupInfo', {

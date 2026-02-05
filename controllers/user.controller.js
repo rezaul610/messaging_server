@@ -1,6 +1,6 @@
 const userService = require('../services/user.service');
 
-const saveUser = async (data) => {
+const saveUser = async (data, userid) => {
     return await userService.saveUser(data);
 };
 
