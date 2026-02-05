@@ -38,6 +38,7 @@ const sendBroadcastMessage = async (io, onlines) => {
                         bpNo: msg.bpNo,
                         receiverbpno: msg.receiverbpno,
                         groupid: msg.groupid,
+                        roleid: msg.roleid,
                         isMe: false,
                         type: msg.messagetype,
                         dateTime: msg.dateTime,

@@ -7,6 +7,7 @@ const saveMessage = async (data, bpno, filePath) => {
             receiverbpno: bpno,
             message: filePath !== '' ? filePath : data.message,
             groupid: data.group_id,
+            roleid: data.role_id,
             messagetype: data.type,
             datetime: data.date_time,
             sentstatus: 0,
@@ -48,6 +49,16 @@ const getMessageByGroupData = async (gdata) => {
     }
 };
 
+const getMessageByRole = async (rdata) => {
+    try {
+        const message = await Message.findAll({ where: { roleid: rdata.role_id, bpno: rdata.bp_no, message: rdata.message } });
+        return message;
+    } catch (error) {
+        console.error("Error retrieving message by ID:", error);
+        throw error;
+    }
+};
+
 const deleteMessage = async (id) => {
     try {
         await Message.destroy({ where: { id: id } });
@@ -63,5 +74,6 @@ module.exports = {
     getAllMessages,
     getMessageByBpNo,
     getMessageByGroupData,
+    getMessageByRole,
     deleteMessage,
 };
