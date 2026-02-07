@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
     console.log(`Connected clients: ${Object.keys(clients).length}  ${query.pushtoken}`);
 
     socket.on('join', async (user) => {
-        console.log(`User joined: ${JSON.stringify(user)}`);
+        // console.log(`User joined: ${JSON.stringify(user)}`);
         onlineUsers.push({ ...user, socketId: socket.id, pushtoken: query.pushtoken });
         const exist = await authController.getAuthUserInfoBySocketId(query.socketid);
 
@@ -58,8 +58,9 @@ io.on("connection", (socket) => {
                 const online = onlineUsers.find(u => u.userid === user.dataValues.bpno || u.userid === user.dataValues.phone);
                 if (online !== null && online !== undefined) {
                     const me = online.userid === data.bp_no || online.userid === data.phone;
+                    console.log(`Group message to ${user.dataValues.bpno} (${online.socketId}), isMe: ${me}`);
                     if (!me) {
-                        console.log(`📨 Sending to ${online.socketId}: ${data}`);
+                        // console.log(`📨 Sending to ${online.socketId}: ${data}`);
                         data.receiver_bp_no = user.dataValues.bpno;
                         messageController.saveMessage(data, data.bp_no);
                         clients[online.socketId].emit("receiveMessage", data);
